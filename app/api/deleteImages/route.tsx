@@ -14,21 +14,31 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
     try {
-        let { fileUrl, profileId, name } = await req.json(); // Change 'const' to 'let'
+        const { fileUrl, profileId, name } = await req.json();
 
         if (!fileUrl || !profileId || !name) {
             return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
         }
 
-        // Remove spaces from actor's name
-        name = name.replace(/\s+/g, '');
+        // Ensure fileUrl is a relative path (not an absolute URL)
+        if (!fileUrl.startsWith('/')) {
+            return NextResponse.json({ error: 'Invalid file URL' }, { status: 400 });
+        }
 
+        // Remove spaces from the name
+        const sanitizedFileName = name.replace(/\s+/g, '');
+
+        // Construct the full path
         const fullPath = join(process.cwd(), 'public', fileUrl);
 
-        // Delete the file
-        await unlink(fullPath);
+        // Delete the file from the server (if it exists)
+        try {
+            await unlink(fullPath);
+        } catch (fsError) {
+            console.warn('File not found or already deleted:', fullPath);
+        }
 
-        // Remove entry from Supabase
+        // Remove the entry from Supabase
         const { error } = await supabase
             .from('profile_images')
             .delete()
