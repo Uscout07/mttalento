@@ -14,10 +14,6 @@ console.log('Supabase Key:', supabaseKey);  // Log the Key (do not log this in p
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Define response type
-type ImageResponse = {
-    file_url: string;
-}
 
 export async function GET(request: NextRequest) {
     try {
