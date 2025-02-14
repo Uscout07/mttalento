@@ -5,6 +5,12 @@ import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useLanguage } from '../../components/languageContext';
 
+interface Profile {
+  id: string;
+  name: string;
+  // Add other fields as necessary
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -26,11 +32,14 @@ const compressImage = async (file: File, options: CompressionOptions = {}): Prom
 
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image(0, 0); 
-      img.onload = () => {
-        let width = img.width;
-        let height = img.height;
+reader.onload = (event) => {
+  const img = new window.Image(); // 👈 Create image element
+  img.width = 0; // 👈 Explicitly specifying dimensions
+  img.height = 0;
+  img.onload = () => {
+    let width = img.width;
+    let height = img.height;
+
         
         if (width > maxWidth) {
           height = (height * maxWidth) / width;
