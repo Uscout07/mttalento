@@ -1,9 +1,9 @@
 'use client';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useLanguage } from '../../components/languageContext';
+import { createClient } from '@supabase/supabase-js';
 
 // Type definitions
 type Language = 'en' | 'es';
@@ -71,193 +71,13 @@ interface Profile {
   doblaje_voz?: Credit[];
 }
 
-interface ImageUploaderProps {
-  onUpload: (file: File) => void;
-  label: string;
-  className?: string;
-}
-
-// Initialize Supabase client with proper typing
+// Initialize Supabase client (make sure your env variables are set)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Image compression utility with TypeScript types
-interface CompressImageOptions {
-  maxWidth?: number;
-  maxHeight?: number;
-  quality?: number;
-  type?: string;
-}
-
-const compressImage = async (file: File, options: CompressImageOptions = {}): Promise<File> => {
-  const {
-    maxWidth = 1200,
-    maxHeight = 1200,
-    quality = 0.8,
-    type = 'image/jpeg'
-  } = options;
-
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (event: ProgressEvent<FileReader>) => {
-      const img = new Image();
-      img.onload = () => {
-        let width = img.width;
-        let height = img.height;
-        
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
-        if (height > maxHeight) {
-          width = (width * maxHeight) / height;
-          height = maxHeight;
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error('Could not get canvas context');
-        
-        ctx.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) throw new Error('Could not create blob');
-            resolve(new File([blob], file.name, {
-              type: type,
-              lastModified: Date.now()
-            }));
-          },
-          type,
-          quality
-        );
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
-};
-
-const ImageUploader: React.FC<ImageUploaderProps> = ({ onUpload, label, className = "" }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-
-  const handleFile = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload only image files');
-      return;
-    }
-
-    try {
-      const compressedFile = await compressImage(file, {
-        maxWidth: 1200,
-        maxHeight: 1200,
-        quality: 0.8,
-        type: 'image/jpeg'
-      });
-      onUpload(compressedFile);
-    } catch (error) {
-      console.error('Error compressing image:', error);
-      alert('Error processing image. Please try again.');
-    }
-  };
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFile(file);
-    }
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFile(file);
-    }
-  };
-
-  return (
-    <div 
-      className={`relative ${className}`}
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-    >
-      <button
-        type="button"
-        onClick={() => fileInputRef.current?.click()}
-        className={`flex items-center justify-center w-full p-4 border-2 border-dashed rounded-lg transition-colors ${
-          isDragging 
-            ? 'border-blue-500 bg-blue-50' 
-            : 'border-gray-300 hover:bg-gray-50'
-        }`}
-      >
-        <div className="text-center">
-          <Upload className={`mx-auto h-8 w-8 ${isDragging ? 'text-blue-500' : 'text-gray-400'}`} />
-          <span className="mt-2 block text-sm font-medium text-gray-900">
-            {isDragging ? 'Drop image here' : label}
-          </span>
-          <span className="mt-1 block text-xs text-gray-500">
-            Drag and drop or click to upload
-          </span>
-        </div>
-      </button>
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileSelect}
-        accept="image/*"
-        className="hidden"
-      />
-    </div>
-  );
-};
-
-const supabaseClient = {
-  uploadImage: async (file: File, actorName: string, isPrimary = false): Promise<string> => {
-    try {
-      const folderPath = `Actors/${actorName}/images`;
-      const fileName = isPrimary ? 'primary.jpeg' : `${Date.now()}.jpeg`;
-      const filePath = `${folderPath}/${fileName}`;
-
-      const compressedFile = await compressImage(file, {
-        maxWidth: isPrimary ? 800 : 1200,
-        maxHeight: isPrimary ? 800 : 1200,
-        quality: 0.8,
-        type: 'image/jpeg'
-      });
-
-      const { error: uploadError } = await supabase.storage
-        .from('public')
-        .upload(filePath, compressedFile);
-
-      if (uploadError) throw uploadError;
-
-      return filePath;
-    } catch (error) {
-      console.error('Upload error:', error);
-      throw error;
-    }
-  },
-};
-
+// Helper to check if a string is valid JSON
 const isJsonString = (str: string): boolean => {
   try {
     JSON.parse(str);
@@ -285,14 +105,14 @@ const ProfileField: React.FC<ProfileFieldProps> = ({ label, value }) => {
 
 const ProfileContent: React.FC = () => {
   const params = useParams();
-  const id = params?.id as string;
-  const { translations, language } = useLanguage() as { 
-    translations: Record<string, string>, 
-    language: Language 
+  const { id } = params; // Extract profile id from URL params
+  const { translations, language } = useLanguage() as {
+    translations: Record<string, string>;
+    language: Language;
   };
 
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -315,10 +135,11 @@ const ProfileContent: React.FC = () => {
         if (profileError) throw profileError;
 
         if (data) {
+          // List of fields that might be stored as JSON strings
           const jsonFields = [
-            'appearance', 
-            'nationality', 
-            'immigration_status', 
+            'appearance',
+            'nationality',
+            'immigration_status',
             'socials',
             'television',
             'largometrajes',
@@ -329,11 +150,14 @@ const ProfileContent: React.FC = () => {
             'serie_documental',
             'doblaje_voz'
           ];
-          
+
           const parsedData = { ...data };
 
           jsonFields.forEach(field => {
-            if (typeof parsedData[field] === 'string' && isJsonString(parsedData[field])) {
+            if (
+              typeof parsedData[field] === 'string' &&
+              isJsonString(parsedData[field])
+            ) {
               parsedData[field] = JSON.parse(parsedData[field]);
             }
           });
@@ -352,9 +176,10 @@ const ProfileContent: React.FC = () => {
     fetchProfile();
   }, [id]);
 
+  // Render credits (e.g., television, films, etc.)
   const renderCredits = (credits: Credit[] | undefined, title: string) => {
     if (!credits || credits.length === 0) return null;
-    
+
     return (
       <div className="mt-6">
         <h3 className="text-xl font-bold mb-3">{title}</h3>
@@ -377,6 +202,7 @@ const ProfileContent: React.FC = () => {
     );
   };
 
+  // Render skills
   const renderSkills = (skills: Skill[] | undefined) => {
     if (!skills || skills.length === 0) return null;
 
@@ -397,6 +223,7 @@ const ProfileContent: React.FC = () => {
     );
   };
 
+  // Render training
   const renderTraining = (training: Training[] | undefined) => {
     if (!training || training.length === 0) return null;
 
@@ -415,6 +242,29 @@ const ProfileContent: React.FC = () => {
     );
   };
 
+  // Render appearance details
+  const renderAppearance = () => {
+    if (typeof profile?.appearance === 'object') {
+      return (
+        <>
+          <ProfileField
+            label={translations.skin || 'Skin'}
+            value={profile.appearance?.[language]?.skin || 'N/A'}
+          />
+          <ProfileField
+            label={translations.hair || 'Hair'}
+            value={profile.appearance?.[language]?.hair || 'N/A'}
+          />
+          <ProfileField
+            label={translations.eyes || 'Eyes'}
+            value={profile.appearance?.[language]?.eyes || 'N/A'}
+          />
+        </>
+      );
+    }
+    return null;
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -427,133 +277,88 @@ const ProfileContent: React.FC = () => {
     return <div className="text-center text-red-500 p-4">{error}</div>;
   }
 
+  if (!profile) {
+    return (
+      <div className="text-center text-gray-500">
+        {translations.profileNotFound || 'Profile not found'}
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <header className="text-center mb-6 md:text-left">
-        <h1 className="text-2xl font-bold">
-          {profile ? profile.name : translations.profileNotFound}
-        </h1>
-        <h2 className="text-xl text-gray-600">
-          {`${translations.profileOf} ${profile?.name || 'Unknown'}`}
-        </h2>
+        <h1 className="text-2xl font-bold">{profile.name || translations.profileNotFound}</h1>
       </header>
-
-      {profile ? (
-        <div>
-          <div className="flex flex-col md:flex-row md:gap-8">
-            <div className="w-full md:w-1/3 flex-shrink-0 mb-6 md:mb-0">
-              <div className="sticky top-4">
-                <Image
-                  src={profile.primary_image || '/fallback-image.png'}
-                  alt={profile.name}
-                  width={400}
-                  height={400}
-                  className="rounded-lg w-full h-auto object-cover"
-                />
-              </div>
-            </div>
-
-            <div className="w-full md:w-2/3">
-              <div className="space-y-2">
-                <ProfileField
-                  label={translations.dateOfBirth}
-                  value={profile.birth_date}
-                />
-                <ProfileField
-                  label={translations.height}
-                  value={profile.height?.toString()}
-                />
-                <ProfileField
-                  label={translations.weight}
-                  value={profile.weight?.toString()}
-                />
-                <ProfileField
-                  label={translations.skin}
-                  value={
-                    typeof profile.appearance === 'object'
-                      ? profile.appearance?.[language]?.skin ||
-                        profile.appearance?.[language]?.piel ||
-                        'N/A' : profile.appearance || 'N/A'
-                      }
-                    />
-                    <ProfileField
-                      label={translations.hair}
-                      value={
-                        typeof profile.appearance === 'object'
-                          ? profile.appearance?.[language]?.hair ||
-                            profile.appearance?.[language]?.cabello ||
-                            'N/A'
-                          : profile.appearance || 'N/A'
-                      }
-                    />
-                    <ProfileField
-                      label={translations.eyes}
-                      value={
-                        typeof profile.appearance === 'object'
-                          ? profile.appearance?.[language]?.eyes ||
-                            profile.appearance?.[language]?.ojos ||
-                            'N/A'
-                          : profile.appearance || 'N/A'
-                      }
-                    />
-                    <ProfileField
-                      label={translations.nationality}
-                      value={
-                        typeof profile.nationality === 'string'
-                          ? profile.nationality
-                          : profile.nationality?.[language] || 'N/A'
-                      }
-                    />
-                    <ProfileField
-                      label={translations.immigrationStatus}
-                      value={
-                        typeof profile.immigration_status === 'string'
-                          ? profile.immigration_status
-                          : profile.immigration_status?.[language] ||
-                            'N/A'
-                      }
-                    />
-                    {profile.socials &&
-                      typeof profile.socials === 'object' &&
-                      profile.socials.instagram && (
-                        <ProfileField
-                          label="Instagram"
-                          value={profile.socials.instagram}
-                        />
-                    )}
-                  </div>
-    
-                  {renderCredits(profile.television, translations.television || 'Television')}
-                  {renderCredits(profile.largometrajes, translations.featureFilms || 'Feature Films')}
-                  {renderCredits(profile.cortometrajes, translations.shortFilms || 'Short Films')}
-                  {renderCredits(profile.teatro, translations.theater || 'Theater')}
-                  {renderCredits(profile.serie_documental, translations.documentarySeries || 'Documentary Series')}
-                  {renderCredits(profile.doblaje_voz, translations.voiceover || 'Voice Over')}
-                  {renderTraining(profile.formacion)}
-                  {renderSkills(profile.habilidades)}
-                </div>
-              </div>
-    
-              {profile.video_url && (
-                <div className="mt-8">
-                  <h2 className="text-xl font-bold mb-4">{translations.demoReel}</h2>
-                  <video
-                    src={profile.video_url}
-                    controls
-                    className="w-full h-auto"
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center text-gray-500">
-              {translations.profileNotFound}
+      <div className="flex flex-col md:flex-row md:gap-8">
+        <div className="w-full md:w-1/3 flex-shrink-0 mb-6 md:mb-0">
+          <div className="sticky top-4">
+            <Image
+              src={profile.primary_image || '/fallback-image.png'}
+              alt={profile.name || 'Profile Image'}
+              width={400}
+              height={400}
+              className="rounded-lg w-full h-auto object-cover"
+            />
+          </div>
+        </div>
+        <div className="w-full md:w-2/3">
+          <ProfileField
+            label={translations.dateOfBirth || 'Date of Birth'}
+            value={profile.birth_date}
+          />
+          <ProfileField
+            label={translations.height || 'Height'}
+            value={profile.height?.toString()}
+          />
+          <ProfileField
+            label={translations.weight || 'Weight'}
+            value={profile.weight?.toString()}
+          />
+          {renderAppearance()}
+          <ProfileField
+            label={translations.nationality || 'Nationality'}
+            value={
+              typeof profile.nationality === 'string'
+                ? profile.nationality
+                : profile.nationality?.[language] || 'N/A'
+            }
+          />
+          <ProfileField
+            label={translations.immigrationStatus || 'Immigration Status'}
+            value={
+              typeof profile.immigration_status === 'string'
+                ? profile.immigration_status
+                : profile.immigration_status?.[language] || 'N/A'
+            }
+          />
+          {profile.socials &&
+            typeof profile.socials === 'object' &&
+            profile.socials.instagram && (
+              <ProfileField label="Instagram" value={profile.socials.instagram} />
+            )}
+          {renderCredits(profile.television, translations.television || 'Television')}
+          {renderCredits(profile.largometrajes, translations.featureFilms || 'Feature Films')}
+          {renderCredits(profile.cortometrajes, translations.shortFilms || 'Short Films')}
+          {renderCredits(profile.teatro, translations.theater || 'Theater')}
+          {renderCredits(profile.serie_documental, translations.documentarySeries || 'Documentary Series')}
+          {renderCredits(profile.doblaje_voz, translations.voiceover || 'Voice Over')}
+          {renderTraining(profile.formacion)}
+          {renderSkills(profile.habilidades)}
+          {profile.video_url && (
+            <div className="mt-8">
+              <h2 className="text-xl font-bold mb-4">
+                {translations.demoReel || 'Demo Reel'}
+              </h2>
+              <video src={profile.video_url} controls className="w-full h-auto">
+                Your browser does not support the video tag.
+              </video>
             </div>
           )}
         </div>
-      );
-    };
-    
-    export default ProfileContent;
+      </div>
+    </div>
+  );
+};
+
+export default ProfileContent;
