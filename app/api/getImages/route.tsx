@@ -8,8 +8,7 @@ const supabase = createClient(
 
 export async function GET(req: NextRequest) {
     try {
-        const url = new URL(req.url); // Correct way to get URL in App Router
-        const profileId = url.searchParams.get('profile_id');
+        const profileId = req.nextUrl.searchParams.get('profile_id'); // Use req.nextUrl for App Router
 
         if (!profileId) {
             return NextResponse.json({ error: "Missing profile_id" }, { status: 400 });
