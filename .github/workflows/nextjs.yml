@@ -1,6 +1,4 @@
-# Sample workflow for building and deploying a Next.js site to GitHub Pages
 name: Deploy Next.js site to Pages
-
 on:
   push:
     branches: ["main"]
@@ -21,7 +19,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
       - name: Detect Package Manager
         id: detect-package-manager
         run: |
@@ -37,18 +34,15 @@ jobs:
             echo "Unable to determine package manager"
             exit 1
           fi
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: ${{ env.manager }}
-
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
         with:
           static_site_generator: next
-
       - name: Restore Cache
         uses: actions/cache@v4
         with:
@@ -56,20 +50,15 @@ jobs:
           key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
-
       - name: Install Dependencies
         run: ${{ env.manager }} ${{ env.command }}
-
-      - name: Set Environment Variables
-        run: |
-          echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" >> $GITHUB_ENV
-          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" >> $GITHUB_ENV
-
       - name: Build with Next.js
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: |
           ${{ env.runner }} next build
           ${{ env.runner }} next export
-
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
