@@ -1,5 +1,3 @@
-// app/api/getImages/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
@@ -11,6 +9,8 @@ if (!supabaseUrl || !supabaseKey) {
     throw new Error('Missing Supabase environment variables');
 }
 
+console.log('Supabase URL:', supabaseUrl);  // Log the URL to check its validity
+console.log('Supabase Key:', supabaseKey);  // Log the Key (do not log this in production)
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
