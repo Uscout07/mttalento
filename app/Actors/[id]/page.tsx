@@ -14,8 +14,14 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
 );
 
-// Image compression utility
-const compressImage = async (file, options = {}) => {
+interface CompressionOptions {
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
+  type?: string;
+}
+
+const compressImage = async (file: File, options: CompressionOptions = {}): Promise<File> => {
   const {
     maxWidth = 1200,
     maxHeight = 1200,
@@ -25,7 +31,7 @@ const compressImage = async (file, options = {}) => {
 
   return new Promise((resolve) => {
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = (event: ProgressEvent<FileReader>) => {
       const img = new Image();
       img.onload = () => {
         // Calculate new dimensions
@@ -46,11 +52,13 @@ const compressImage = async (file, options = {}) => {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Could not get canvas context');
         ctx.drawImage(img, 0, 0, width, height);
 
         // Convert to Blob
         canvas.toBlob(
           (blob) => {
+            if (!blob) throw new Error('Could not create blob');
             resolve(new File([blob], file.name, {
               type: type,
               lastModified: Date.now()
@@ -60,7 +68,7 @@ const compressImage = async (file, options = {}) => {
           quality
         );
       };
-      img.src = event.target.result;
+      img.src = event.target?.result as string;
     };
     reader.readAsDataURL(file);
   });
