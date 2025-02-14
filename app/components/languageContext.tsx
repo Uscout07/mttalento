@@ -39,6 +39,7 @@ interface Translations {
   remove: string;
   selectActor: string;
   longFilms: string;
+  appearance: string;
 }
 
 type LanguageType = 'en' | 'es';
@@ -88,6 +89,7 @@ const translations: { [key in LanguageType]: Translations } = {
     remove: 'Remove',
     selectActor: 'Select Actor',
     longFilms: 'Long Films',
+    appearance: 'Appearance',
   },
   es: {
     name: 'Nombre',
@@ -127,6 +129,7 @@ const translations: { [key in LanguageType]: Translations } = {
     remove: 'Eliminar',
     selectActor: 'Seleccionar Actor',
     longFilms: 'Largometrajes',
+    appearance: 'Apariencia',
   },
 };
 
