@@ -8,8 +8,8 @@ const supabase = createClient(
 
 export async function GET(req: NextRequest) {
     try {
-        const url = new URL(req.url);
-        const profileId = url.searchParams.get('profile_id');
+        const url = req.nextUrl;
+        const profileId = url.searchParams.get('profile_id'); 
 
         if (!profileId) {
             return NextResponse.json({ error: 'Missing profile_id' }, { status: 400 });
