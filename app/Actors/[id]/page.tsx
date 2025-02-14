@@ -107,7 +107,7 @@ const ProfileContent: React.FC = () => {
   const params = useParams();
   const { id } = params; // Extract profile id from URL params
 
-  // Convert language context to unknown first, then to our expected type
+  // Cast language context to our expected type
   const { translations, language } = useLanguage() as unknown as {
     translations: Record<string, string>;
     language: Language;
@@ -244,23 +244,25 @@ const ProfileContent: React.FC = () => {
     );
   };
 
-  // Render appearance details
+  // Render appearance details with correct property names based on language
   const renderAppearance = () => {
     if (typeof profile?.appearance === 'object') {
+      let skin: string | undefined, hair: string | undefined, eyes: string | undefined;
+      if (language === 'en') {
+        skin = profile.appearance?.[language]?.skin;
+        hair = profile.appearance?.[language]?.hair;
+        eyes = profile.appearance?.[language]?.eyes;
+      } else {
+        // For Spanish: use "piel", "cabello", "ojos"
+        skin = (profile.appearance as any)?.[language]?.piel;
+        hair = (profile.appearance as any)?.[language]?.cabello;
+        eyes = (profile.appearance as any)?.[language]?.ojos;
+      }
       return (
         <>
-          <ProfileField
-            label={translations.skin || 'Skin'}
-            value={profile.appearance?.[language]?.skin || 'N/A'}
-          />
-          <ProfileField
-            label={translations.hair || 'Hair'}
-            value={profile.appearance?.[language]?.hair || 'N/A'}
-          />
-          <ProfileField
-            label={translations.eyes || 'Eyes'}
-            value={profile.appearance?.[language]?.eyes || 'N/A'}
-          />
+          <ProfileField label={translations.skin || 'Skin'} value={skin || 'N/A'} />
+          <ProfileField label={translations.hair || 'Hair'} value={hair || 'N/A'} />
+          <ProfileField label={translations.eyes || 'Eyes'} value={eyes || 'N/A'} />
         </>
       );
     }

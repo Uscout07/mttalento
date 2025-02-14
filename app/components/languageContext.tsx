@@ -39,9 +39,6 @@ interface Translations {
   remove: string;
   selectActor: string;
   longFilms: string;
-  appearance: string;
-  addTheatreCredits: string;
-  addFeatureFilmsCredits: string;
 }
 
 type LanguageType = 'en' | 'es';
@@ -91,9 +88,6 @@ const translations: { [key in LanguageType]: Translations } = {
     remove: 'Remove',
     selectActor: 'Select Actor',
     longFilms: 'Long Films',
-    appearance: 'Appearance',
-    addTheatreCredits: 'Add Theatre Credits',
-    addFeatureFilmsCredits: 'Add Feature Film Credits',
   },
   es: {
     name: 'Nombre',
@@ -133,9 +127,6 @@ const translations: { [key in LanguageType]: Translations } = {
     remove: 'Eliminar',
     selectActor: 'Seleccionar Actor',
     longFilms: 'Largometrajes',
-    appearance: 'Apariencia',
-    addTheatreCredits: 'Agregar Créditos de Teatro',
-    addFeatureFilmsCredits: 'Agregar Créditos de Largometrajes',
   },
 };
 
