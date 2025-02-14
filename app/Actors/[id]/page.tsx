@@ -71,7 +71,7 @@ interface Profile {
   doblaje_voz?: Credit[];
 }
 
-// Initialize Supabase client (make sure your env variables are set)
+// Initialize Supabase client (ensure your env variables are set)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -106,7 +106,9 @@ const ProfileField: React.FC<ProfileFieldProps> = ({ label, value }) => {
 const ProfileContent: React.FC = () => {
   const params = useParams();
   const { id } = params; // Extract profile id from URL params
-  const { translations, language } = useLanguage() as {
+
+  // Convert language context to unknown first, then to our expected type
+  const { translations, language } = useLanguage() as unknown as {
     translations: Record<string, string>;
     language: Language;
   };
@@ -135,7 +137,7 @@ const ProfileContent: React.FC = () => {
         if (profileError) throw profileError;
 
         if (data) {
-          // List of fields that might be stored as JSON strings
+          // Fields that might be stored as JSON strings
           const jsonFields = [
             'appearance',
             'nationality',
