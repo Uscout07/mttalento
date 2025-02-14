@@ -4,13 +4,17 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
+interface ImageData {
+    file_url: string;
+}
+
 interface UploadImageProps {
     profileId: string;
     name: string;
 }
 
 const UploadImage = ({ profileId, name }: UploadImageProps) => {
-    const [images, setImages] = useState([]);
+    const [images, setImages] = useState<ImageData[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -23,8 +27,15 @@ const UploadImage = ({ profileId, name }: UploadImageProps) => {
 
     const fetchImages = async () => {
         try {
-            const res = await fetch(`/api/getImages?profile_id=${profileId}`);
-            if (!res.ok) throw new Error('Failed to fetch images');
+            // Encode the profile_id to handle special characters
+            const encodedProfileId = encodeURIComponent(profileId);
+            const res = await fetch(`/api/getImages?profile_id=${encodedProfileId}`);
+            
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to fetch images');
+            }
+            
             const data = await res.json();
             setImages(data.images || []);
             setError(null);
@@ -41,6 +52,15 @@ const UploadImage = ({ profileId, name }: UploadImageProps) => {
             return;
         }
         const file = files[0];
+        
+        // Validate file size (e.g., 5MB limit)
+        const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+        if (file.size > MAX_FILE_SIZE) {
+            setError('File size exceeds 5MB limit');
+            setSelectedFile(null);
+            return;
+        }
+
         if (file && file.type.startsWith('image/')) {
             setSelectedFile(file);
             setError(null);
@@ -70,7 +90,10 @@ const UploadImage = ({ profileId, name }: UploadImageProps) => {
                 body: formData,
             });
 
-            if (!res.ok) throw new Error('Upload failed');
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Upload failed');
+            }
             
             await fetchImages();
             setSelectedFile(null);
@@ -94,11 +117,18 @@ const UploadImage = ({ profileId, name }: UploadImageProps) => {
         try {
             const res = await fetch('/api/deleteImages', {
                 method: 'POST',
-                body: JSON.stringify({ fileUrl, profileId, actorName: name.replace(/\s+/g, '') }),
+                body: JSON.stringify({ 
+                    fileUrl, 
+                    profileId, 
+                    actorName: name.replace(/\s+/g, '')
+                }),
                 headers: { 'Content-Type': 'application/json' },
             });
 
-            if (!res.ok) throw new Error('Delete failed');
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Delete failed');
+            }
             
             await fetchImages();
         } catch (error) {
@@ -115,18 +145,20 @@ const UploadImage = ({ profileId, name }: UploadImageProps) => {
 
     return (
         <div className="p-4 space-y-4">
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                 <input 
                     type="file" 
                     onChange={handleFileChange}
                     accept="image/*"
-                    className="border p-2 rounded"
+                    className="border p-2 rounded w-full sm:w-auto"
                     disabled={loading}
                 />
                 <button 
                     onClick={handleUpload} 
                     disabled={loading || !selectedFile}
-                    className={`px-4 py-2 rounded text-white ${loading || !selectedFile ? 'bg-blue-300' : 'bg-blue-500 hover:bg-blue-600'}`}
+                    className={`px-4 py-2 rounded text-white w-full sm:w-auto ${
+                        loading || !selectedFile ? 'bg-blue-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+                    }`}
                 >
                     {loading ? 'Uploading...' : 'Upload'}
                 </button>
@@ -138,16 +170,17 @@ const UploadImage = ({ profileId, name }: UploadImageProps) => {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {images.map((img: { file_url: string }) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {images.map((img: ImageData) => (
                     <div key={img.file_url} className="relative group">
-                        <Image 
-                            src={img.file_url} 
-                            alt="Actor Image" 
-                            width={128}
-                            height={128}
-                            className="w-32 h-32 object-cover rounded"
-                        />
+                        <div className="aspect-square relative">
+                            <Image 
+                                src={img.file_url} 
+                                alt="Actor Image" 
+                                fill
+                                className="object-cover rounded"
+                            />
+                        </div>
                         <button
                             onClick={() => handleDelete(img.file_url)}
                             className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
