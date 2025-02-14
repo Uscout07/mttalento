@@ -8,6 +8,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        Gill_Sans: ['Gill_Sans', 'sans'],
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
