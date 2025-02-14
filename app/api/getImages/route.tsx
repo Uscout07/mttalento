@@ -14,9 +14,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function GET(req: NextRequest) {
     try {
-        // Validate and sanitize the profile_id parameter
-        const url = new URL(req.url);
-        const profileId = url.searchParams.get('profile_id');
+        // Safe URL parameter extraction without URL constructor
+        const profileId = req.nextUrl.searchParams.get('profile_id');
 
         if (!profileId) {
             return NextResponse.json(
@@ -26,7 +25,6 @@ export async function GET(req: NextRequest) {
         }
 
         // Validate profile_id format (assuming it should be a number or UUID)
-        // Modify this validation based on your specific requirements
         if (!/^\d+$/.test(profileId) && !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(profileId)) {
             return NextResponse.json(
                 { error: "Invalid profile_id format" },
