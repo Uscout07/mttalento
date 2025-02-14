@@ -27,7 +27,7 @@ const compressImage = async (file: File, options: CompressionOptions = {}): Prom
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (event) => {
-      const img = new Image();
+      const img = new Image(0, 0); 
       img.onload = () => {
         let width = img.width;
         let height = img.height;
