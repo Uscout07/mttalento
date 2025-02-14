@@ -5,14 +5,21 @@ import { createClient } from '@supabase/supabase-js';
 import { LanguageProvider, useLanguage } from '../components/languageContext';
 import UploadImage from '../components/uploadImages';
 
-// Initialize Supabase client properly
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+type LanguageType = 'en' | 'es';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Supabase environment variables are missing.');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 
 // Simple Alert component
-const Alert = ({ children, variant = 'error' }) => (
+const Alert: React.FC<{ children: React.ReactNode; variant?: 'error' | 'info' }> = ({ children, variant = 'error' }) => (
     <div className={`p-4 rounded ${variant === 'error' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
         {children}
     </div>
@@ -30,7 +37,7 @@ const supabaseClient = {
             throw error;
         }
     },
-    save: async (data) => {
+    save: async (data: any) => {
         try {
             const { data: savedData, error } = await supabase.from('profile').upsert(data);
             if (error) throw error;
@@ -44,10 +51,10 @@ const supabaseClient = {
 
 const ActorProfileEditor = () => {
     const { translations, setLanguage, language } = useLanguage();
-    const [actors, setActors] = useState([]);
+    const [actors, setActors] = useState<any[]>([]);
     const [selectedActor, setSelectedActor] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchActors();
@@ -68,7 +75,7 @@ const ActorProfileEditor = () => {
         }
     };
 
-    const handleSave = async (formData) => {
+    const handleSave = async (formData: any) => {
         try {
             setIsLoading(true);
             setError(null);
@@ -90,7 +97,7 @@ const ActorProfileEditor = () => {
         <div className="p-4">
             <div className="mb-4">
                 <select
-                    onChange={(e) => setLanguage(e.target.value)}
+                    onChange={(e) => setLanguage(e.target.value as LanguageType)}
                     value={language}
                     className="px-2 py-1 border rounded"
                 >
@@ -130,11 +137,11 @@ const ActorProfileEditor = () => {
     );
 };
 
-const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
+const ActorForm: React.FC<{ actor: any; onSubmit: (data: any) => void; isLoading: boolean }> = ({ actor = {}, onSubmit, isLoading }) => {
     const { translations, language } = useLanguage();
 
     // Helper function to safely parse appearance data
-    const parseAppearance = (appearanceData) => {
+    const parseAppearance = (appearanceData: any) => {
         return {
             en: {
                 eyes: appearanceData?.en?.eyes || '',
@@ -173,14 +180,14 @@ const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
     };
 
 
-    const [formData, setFormData] = useState(initialFormData);
+    const [formData, setFormData] = useState<{ [key: string]: any }>(initialFormData);
 
     // Update form data when actor prop changes
     useEffect(() => {
         setFormData(initialFormData);
     }, [actor]);
 
-    const handleInputChange = (e) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
@@ -188,7 +195,7 @@ const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
         }));
     };
 
-    const handleLocalizedChange = (field, lang, subfield, value) => {
+    const handleLocalizedChange = (field: string, lang: string, subfield: string, value: string) => {
         setFormData(prev => ({
             ...prev,
             [field]: {
@@ -201,9 +208,9 @@ const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
         }));
     };
 
-    const handleArrayChange = (field, index, key, value) => {
+    const handleArrayChange = (field: keyof typeof formData, index: number, key: string, value: any) => {
         setFormData(prev => {
-            const newArray = [...(prev[field] || [])];
+            const newArray = [...(prev[field] || []) as any[]];
             if (!newArray[index]) {
                 newArray[index] = {};
             }
@@ -212,17 +219,17 @@ const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
         });
     };
 
-    const addToArray = (field) => {
+    const addToArray = (field: keyof typeof formData) => {
         setFormData(prev => ({
             ...prev,
-            [field]: [...(prev[field] || []), {}]
+            [field]: [...(prev[field] || []) as any[], {}]
         }));
     };
 
-    const removeFromArray = (field, index) => {
+    const removeFromArray = (field: keyof typeof formData, index: number) => {
         setFormData(prev => ({
             ...prev,
-            [field]: (prev[field] || []).filter((_, i) => i !== index)
+            [field]: (prev[field] || [])?.filter((_: any, i: number) => i !== index)
         }));
     };
 
@@ -389,7 +396,7 @@ const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
                 {/* Television Section */}
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-4">{translations?.television || 'Television'}</h3>
-                    {formData.television.map((show, index) => (
+                    {formData.television.map((show: any, index: number) => (
                         <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded">
                             <input
                                 type="text"
@@ -439,7 +446,7 @@ const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
                 {/* Long Films Section */}
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-4">{translations?.longFilms || 'Long Films'}</h3>
-                    {formData.largometrajes.map((film, index) => (
+                    {formData.largometrajes.map((film: any, index: number) => (
                         <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded">
                             <input
                                 type="text"
@@ -489,7 +496,7 @@ const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
                 {/* Short Films Section */}
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-4">{translations?.shortFilms || 'Short Films'}</h3>
-                    {formData.cortometrajes.map((film, index) => (
+                    {formData.cortometrajes.map((film: any, index: number) => (
                         <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded">
                             <input
                                 type="text"
@@ -539,7 +546,7 @@ const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
                 {/* Theatre Section */}
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-4">{translations.theatre}</h3>
-                    {formData.teatro.map((play, index) => (
+                    {formData.teatro.map((play: any, index: number) => (
                         <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded">
                             <input
                                 type="text"
@@ -604,7 +611,7 @@ const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
                 {/* Training Section */}
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-4">{translations.training}</h3>
-                    {(formData.formacion || []).map((training, index) => (
+                    {(formData.formacion || []).map((training: any, index: number) => (
                         <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded">
                             <input
                                 type="text"
@@ -640,7 +647,7 @@ const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
                 {/* Skills (Habilidades) Section */}
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-4">{translations.skills}</h3>
-                    {(formData.habilidades || []).map((skill, index) => (
+                    {(formData.habilidades || []).map((skill: any, index: number) => (
                         <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded">
                             <input
                                 type="text"
@@ -675,7 +682,7 @@ const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
                 {/* Documentary Series Section */}
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-4">{translations.documentarySeries}</h3>
-                    {(formData.serie_documental || []).map((series, index) => (
+                    {(formData.serie_documental || []).map((series: any, index: number) => (
                         <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded">
                             <input
                                 type="text"
@@ -718,7 +725,7 @@ const ActorForm = ({ actor = {}, onSubmit, isLoading }) => {
                 {/* Voice Dubbing Section */}
                 <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-4">{translations.voiceDubbing}</h3>
-                    {(formData.doblaje_voz || []).map((dubbing, index) => (
+                    {(formData.doblaje_voz || []).map((dubbing: any, index: number) => (
                         <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded">
                             <input
                                 type="text"

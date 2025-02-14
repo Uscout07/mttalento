@@ -2,7 +2,9 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface Translations {
+  name: string;
   dateOfBirth: string;
+  selectAnActor: string;
   height: string;
   weight: string;
   skin: string;
@@ -12,7 +14,34 @@ interface Translations {
   immigrationStatus: string;
   profileNotFound: string;
   profileOf: string;
-  demoReel: string; // Add this line
+  demoReel: string;
+  basicInfo: string;
+  training: string;
+  skills: string;
+  documentarySeries: string;
+  voiceDubbing: string;
+  television: string;
+  addLongFilmsCredits: string;
+  addShortFilmsCredit: string;
+  theatre: string;
+  addTelevisionCredits: string;
+  addTraining: string;
+  addSkills: string;
+  addDocumentarySeries: string;
+  addVoiceDubbing: string;
+  featureFilms: string;
+  shortFilmsCredits: string;
+  shortFilms: string;
+  theater: string;
+  voiceover: string;
+  primaryImage: string;
+  nationalityInfo: string;
+  remove: string;
+  selectActor: string;
+  longFilms: string;
+  appearance: string;
+  addTheatreCredits: string;
+  addFeatureFilmsCredits: string;
 }
 
 type LanguageType = 'en' | 'es';
@@ -46,6 +75,7 @@ const translations: { [key in LanguageType]: Translations } = {
     television: 'Television',
     addLongFilmsCredits: 'Add Long Film Credits',
     addShortFilmsCredit: 'Add Short Films Credit',
+    shortFilms: 'Short Films',
     theatre: 'Theatre',
     addTelevisionCredits: 'Add Television Credits',
     addTraining: 'Add Training',
@@ -59,6 +89,11 @@ const translations: { [key in LanguageType]: Translations } = {
     primaryImage: 'Primary Image',
     nationalityInfo: 'Nationality Information',
     remove: 'Remove',
+    selectActor: 'Select Actor',
+    longFilms: 'Long Films',
+    appearance: 'Appearance',
+    addTheatreCredits: 'Add Theatre Credits',
+    addFeatureFilmsCredits: 'Add Feature Film Credits',
   },
   es: {
     name: 'Nombre',
@@ -82,6 +117,7 @@ const translations: { [key in LanguageType]: Translations } = {
     television: 'Televisión',
     addLongFilmsCredits: 'Agregar créditos de largometrajes',
     shortFilms: 'Cortometrajes',
+    shortFilmsCredits: 'Créditos de Cortometrajes',
     theatre: 'Teatro',
     addTelevisionCredits: 'Agregar Crédito De Televisión',
     addTraining: 'Agregar Formación',
@@ -95,9 +131,13 @@ const translations: { [key in LanguageType]: Translations } = {
     primaryImage: 'Imagen Principal',
     nationalityInfo: 'Información de Nacionalidad',
     remove: 'Eliminar',
+    selectActor: 'Seleccionar Actor',
+    longFilms: 'Largometrajes',
+    appearance: 'Apariencia',
+    addTheatreCredits: 'Agregar Créditos de Teatro',
+    addFeatureFilmsCredits: 'Agregar Créditos de Largometrajes',
   },
 };
-
 
 const LanguageContext = createContext<LanguageContextType>({
   language: 'es',
