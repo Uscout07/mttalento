@@ -110,7 +110,7 @@ export default function Header() {
           ))}
           {/* Language Switcher with adjusted style */}
           <div className="flex justify-end">
-            <LanguageSwitcher className="text-white" />
+            <LanguageSwitcher />
           </div>
         </nav>
       </div>

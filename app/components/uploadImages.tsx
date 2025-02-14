@@ -4,11 +4,16 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
-const UploadImage = ({ profileId, name }) => {
+interface UploadImageProps {
+    profileId: string;
+    name: string;
+}
+
+const UploadImage = ({ profileId, name }: UploadImageProps) => {
     const [images, setImages] = useState([]);
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (profileId) {
@@ -29,8 +34,13 @@ const UploadImage = ({ profileId, name }) => {
         }
     };
 
-    const handleFileChange = (event) => {
-        const file = event.target.files[0];
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (!files) {
+            setError('No files selected');
+            return;
+        }
+        const file = files[0];
         if (file && file.type.startsWith('image/')) {
             setSelectedFile(file);
             setError(null);
@@ -65,7 +75,7 @@ const UploadImage = ({ profileId, name }) => {
             await fetchImages();
             setSelectedFile(null);
             // Reset file input
-            const fileInput = document.querySelector('input[type="file"]');
+            const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
             if (fileInput) fileInput.value = '';
         } catch (error) {
             setError('Error uploading file');
@@ -75,7 +85,7 @@ const UploadImage = ({ profileId, name }) => {
         }
     };
 
-    const handleDelete = async (fileUrl) => {
+    const handleDelete = async (fileUrl: string) => {
         if (!fileUrl || !profileId || !name) return;
 
         setLoading(true);
@@ -129,7 +139,7 @@ const UploadImage = ({ profileId, name }) => {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {images.map((img) => (
+                {images.map((img: { file_url: string }) => (
                     <div key={img.file_url} className="relative group">
                         <Image 
                             src={img.file_url} 
