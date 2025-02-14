@@ -3,9 +3,13 @@ import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { createClient } from '@supabase/supabase-js';
 
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    throw new Error('Supabase environment variables are not set');
+}
+
 const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
 export async function POST(req: NextRequest) {
