@@ -4,14 +4,14 @@ import { Icon } from "@iconify/react";
 
 export default function Home() {
   const posters = [
-    "/posters/poster1.jpeg",
-    "/posters/poster2.jpeg",
-    "/posters/poster3.jpeg",
-    "/posters/poster4.jpeg",
-    "/posters/poster5.jpeg",
-    "/posters/poster6.jpeg",
-    "/posters/poster7.jpeg",
-    "/posters/poster8.jpeg",
+    "/posters/poster1.jpg",
+    "/posters/poster2.jpg",
+    "/posters/poster3.jpg",
+    "/posters/poster4.jpg",
+    "/posters/poster5.jpg",
+    "/posters/poster6.jpg",
+    "/posters/poster7.jpg",
+    "/posters/poster8.jpg",
   ];
   return (
     <div className="relative w-full h-screen overflow-hidden ">
