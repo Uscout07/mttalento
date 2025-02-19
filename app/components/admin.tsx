@@ -1,129 +1,290 @@
 'use client';
+
 import React, { useState, useEffect } from 'react';
-import { useLanguage, LanguageProvider } from './languageContext';
+import { createClient } from '@supabase/supabase-js';
+import { LanguageProvider, useLanguage } from './languageContext';
+import UploadImage from './uploadImages';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase environment variables are missing.');
+}
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Simple Alert component
+const Alert: React.FC<{ children: React.ReactNode; variant?: 'error' | 'info' }> = ({
+    children,
+    variant = 'error',
+}) => (
+    <div
+        className={`p-4 rounded ${variant === 'error' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+            }`}
+    >
+        {children}
+    </div>
+);
+
+// Supabase client wrapper for fetching and saving profiles
+const supabaseClient = {
+    fetch: async () => {
+        try {
+            const { data, error } = await supabase.from('profile').select('*');
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            console.error('Fetch error:', error);
+            throw error;
+        }
+    },
+    save: async (data: any) => {
+        try {
+            // For new actors, remove id so Supabase can generate it
+            if (!data.id) {
+                const { id, ...payload } = data;
+                data = payload;
+            }
+            const { data: savedData, error } = await supabase.from('profile').upsert(data).select();
+            if (error) throw error;
+            return savedData;
+        } catch (error) {
+            console.error('Save error:', error);
+            throw error;
+        }
+    },
+};
+
+const ActorProfileEditor = () => {
+    const { translations } = useLanguage();
+    const [actors, setActors] = useState<any[]>([]);
+    const [selectedActor, setSelectedActor] = useState<any | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Fetch actor profiles on mount
+    useEffect(() => {
+        fetchActors();
+    }, []);
+
+    const fetchActors = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const data = await supabaseClient.fetch();
+            setActors(data || []);
+        } catch (err) {
+            setError('Failed to fetch actors');
+            setActors([]);
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSave = async (formData: any) => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            await supabaseClient.save(formData);
+            await fetchActors();
+            // If editing an existing actor, keep it selected.
+            // If new actor creation, clear selection after saving.
+            if (formData.id) {
+                setSelectedActor(formData);
+            } else {
+                setSelectedActor(null);
+            }
+        } catch (err) {
+            setError('Failed to save actor profile');
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // When "Create New Actor" is clicked, clear the selection (empty object indicates new actor)
+    const handleCreateNew = () => {
+        setSelectedActor({});
+    };
+
+    // Cancel new actor creation by clearing the selection so the dropdown shows again.
+    const handleCancelNew = () => {
+        setSelectedActor(null);
+    };
+
+    return (
+        <div className="p-4">
+            <div className="mb-4 flex justify-end">
+                <button
+                    onClick={handleCreateNew}
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                    {translations?.createNewActor || 'Create New Actor'}
+                </button>
+            </div>
+
+            {error && <Alert>{error}</Alert>}
+
+            {/* Show actor selection dropdown only if not creating a new actor */}
+            {(!selectedActor || (selectedActor && selectedActor.id)) && actors.length > 0 && (
+                <div className="mb-6">
+                    <h2 className="text-xl font-bold mb-2">
+                        {translations?.selectActor || 'Select Actor'}
+                    </h2>
+                    <select
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setSelectedActor(value ? JSON.parse(value) : null);
+                        }}
+                        className="w-full p-2 border rounded"
+                        value={selectedActor && selectedActor.id ? JSON.stringify(selectedActor) : ''}
+                    >
+                        <option value="">{translations?.selectAnActor || 'Select an Actor'}</option>
+                        {actors.map((actor) => (
+                            <option key={actor.id} value={JSON.stringify(actor)}>
+                                {actor.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
+
+            {/* If creating a new actor (selectedActor exists but has no id), show a Cancel button */}
+            {selectedActor !== null && !selectedActor.id && (
+                <div className="mb-4">
+                    <button
+                        type="button"
+                        onClick={handleCancelNew}
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    >
+                        {translations?.cancel || 'Cancel'}
+                    </button>
+                </div>
+            )}
+
+            {/* Render the form if an actor is selected (for editing or new creation) */}
+            {selectedActor !== null && (
+                <ActorForm actor={selectedActor} onSubmit={handleSave} isLoading={isLoading} />
+            )}
+
+            {isLoading && actors.length === 0 && <div className="p-4">Loading actors...</div>}
+        </div>
+    );
+};
 
 interface ActorFormProps {
-  actor: any;
-  onSubmit: (data: any) => void;
-  isLoading: boolean;
-  isNew: boolean;
+    actor: any;
+    onSubmit: (data: any) => void;
+    isLoading: boolean;
 }
 
-const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading, isNew }) => {
-  const { translations } = useLanguage();
+const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading }) => {
+    const { translations } = useLanguage();
 
-  const parseAppearance = (appearanceData: any) => {
-    return {
-      en: {
-        eyes: appearanceData?.en?.eyes ?? '',
-        hair: appearanceData?.en?.hair ?? '',
-        skin: appearanceData?.en?.skin ?? '',
-      },
-      es: {
-        ojos: appearanceData?.es?.ojos ?? '',
-        piel: appearanceData?.es?.piel ?? '',
-        cabello: appearanceData?.es?.cabello ?? '',
-      },
+    const parseAppearance = (appearanceData: any) => {
+        return {
+            en: {
+                eyes: appearanceData?.en?.eyes || '',
+                hair: appearanceData?.en?.hair || '',
+                skin: appearanceData?.en?.skin || '',
+            },
+            es: {
+                ojos: appearanceData?.es?.ojos || '',
+                piel: appearanceData?.es?.piel || '',
+                cabello: appearanceData?.es?.cabello || '',
+            },
+        };
     };
-  };
 
-  const initialFormData = {
-    id: actor?.id ?? '',
-    name: actor?.name ?? '',
-    birth_date: actor?.birth_date ?? '',
-    height: actor?.height ?? '',
-    weight: actor?.weight ?? '',
-    appearance: parseAppearance(actor?.appearance),
-    nationality: {
-      en: actor?.nationality?.en ?? '',
-      es: actor?.nationality?.es ?? '',
-    },
-    primary_image: actor?.primary_image ?? '',
-    television: actor?.television ?? [],
-    largometrajes: actor?.largometrajes ?? [],
-    cortometrajes: actor?.cortometrajes ?? [],
-    teatro: actor?.teatro ?? [],
-    formacion: actor?.formacion ?? [],
-    habilidades: actor?.habilidades ?? [],
-    serie_documental: actor?.serie_documental ?? [],
-    doblaje_voz: actor?.doblaje_voz ?? [],
-  };
-
-  const [formData, setFormData] = useState<{ [key: string]: any }>(initialFormData);
-
-  useEffect(() => {
-    setFormData(initialFormData);
-  }, [actor]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleLocalizedChange = (
-    field: string,
-    lang: string,
-    subfield: string,
-    value: string
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: {
-        ...prev[field],
-        [lang]: {
-          ...prev[field][lang],
-          [subfield]: value,
+    const initialFormData = {
+        id: actor?.id || '',
+        name: actor?.name || '',
+        birth_date: actor?.birth_date || '',
+        height: actor?.height || '',
+        weight: actor?.weight || '',
+        appearance: parseAppearance(actor?.appearance),
+        nationality: {
+            en: actor?.nationality?.en || '',
+            es: actor?.nationality?.es || '',
         },
-      },
-    }));
-  };
+        primary_image: actor?.primary_image || '',
+        television: actor?.television || [],
+        largometrajes: actor?.largometrajes || [],
+        cortometrajes: actor?.cortometrajes || [],
+        teatro: actor?.teatro || [],
+        formacion: actor?.formacion || [],
+        habilidades: actor?.habilidades || [],
+        serie_documental: actor?.serie_documental || [],
+        doblaje_voz: actor?.doblaje_voz || [],
+    };
 
-  const handleArrayChange = (
-    field: keyof typeof formData,
-    index: number,
-    key: string,
-    value: any
-  ) => {
-    setFormData((prev) => {
-      const newArray = [...(prev[field] || [])] as any[];
-      if (!newArray[index]) {
-        newArray[index] = {};
-      }
-      newArray[index] = { ...newArray[index], [key]: value };
-      return { ...prev, [field]: newArray };
-    });
-  };
+    const [formData, setFormData] = useState<{ [key: string]: any }>(initialFormData);
 
-  const addToArray = (field: keyof typeof formData) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: [...(prev[field] || []), {}],
-    }));
-  };
+    useEffect(() => {
+        setFormData(initialFormData);
+    }, [actor]);
 
-  const removeFromArray = (field: keyof typeof formData, index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: (prev[field] || [])?.filter((_: any, i: number) => i !== index),
-    }));
-  };
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+    const handleLocalizedChange = (field: string, lang: string, subfield: string, value: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            [field]: {
+                ...prev[field],
+                [lang]: {
+                    ...prev[field][lang],
+                    [subfield]: value,
+                },
+            },
+        }));
+    };
 
+    const handleArrayChange = (
+        field: keyof typeof formData,
+        index: number,
+        key: string,
+        value: any
+    ) => {
+        setFormData((prev) => {
+            const newArray = [...(prev[field] || [])] as any[];
+            if (!newArray[index]) {
+                newArray[index] = {};
+            }
+            newArray[index] = { ...newArray[index], [key]: value };
+            return { ...prev, [field]: newArray };
+        });
+    };
+
+    const addToArray = (field: keyof typeof formData) => {
+        setFormData((prev) => ({
+            ...prev,
+            [field]: [...(prev[field] || []), {}],
+        }));
+    };
+
+    const removeFromArray = (field: keyof typeof formData, index: number) => {
+        setFormData((prev) => ({
+            ...prev,
+            [field]: (prev[field] || []).filter((_: any, i: number) => i !== index),
+        }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSubmit(formData);
+    };
 
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-8">
             <form onSubmit={handleSubmit}>
                 <div className="bg-white shadow-md rounded-lg p-6">
-                    <h2 className="text-2xl font-bold mb-6">{translations?.basicInfo || 'Basic Information'}</h2>
-
-                    {/* Basic Information */}
+                    <h2 className="text-2xl font-bold mb-6">
+                        {translations?.basicInfo || 'Basic Information'}
+                    </h2>
+                    {/* Basic Information Fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div>
                             <label className="block text-sm font-medium mb-1">
@@ -137,7 +298,6 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading, 
                                 />
                             </label>
                         </div>
-
                         <div>
                             <label className="block text-sm font-medium mb-1">
                                 {translations?.dateOfBirth}
@@ -150,7 +310,6 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading, 
                                 />
                             </label>
                         </div>
-
                         <div>
                             <label className="block text-sm font-medium mb-1">
                                 {translations?.height || 'Height'}
@@ -164,7 +323,6 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading, 
                                 />
                             </label>
                         </div>
-
                         <div>
                             <label className="block text-sm font-medium mb-1">
                                 {translations?.weight || 'Weight'}
@@ -178,7 +336,6 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading, 
                             </label>
                         </div>
                     </div>
-
                     {/* Appearance Section */}
                     <div className="mb-6">
                         <h3 className="text-lg font-semibold mb-4">{translations?.appearance || 'Appearance'}</h3>
@@ -654,27 +811,41 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading, 
                         </button>
                     </div>
 
-                </div>
-                <div className="flex justify-end">
+
+                    {/* Place the UploadImage component inside the form */}
+                    <div className="mb-6">
+                        <UploadImage profileId={formData.id} name={formData.name} />
+                    </div>
+
+                    <div className="flex justify-end space-x-4">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                // Cancel is handled by the parent (ActorProfileEditor) via handleCancelNew
+                            }}
+                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                        >
+                            {translations?.cancel || 'Cancel'}
+                        </button>
                         <button
                             type="submit"
                             disabled={isLoading}
                             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                         >
-                            {isNew ? translations?.createNewActor || 'Create Actor' : translations?.confirm || 'Confirm'}
+                            {actor?.id
+                                ? translations?.confirm || 'Confirm'
+                                : translations?.createNewActor || 'Create Actor'}
                         </button>
                     </div>
+                </div>
             </form>
         </div>
-
     );
-
 };
 
 export default function App() {
     return (
-        <LanguageProvider>
-            <ActorForm actor={{}} onSubmit={() => {}} isLoading={false} isNew={true} />
-        </LanguageProvider>
+        
+            <ActorProfileEditor />
     );
 }
