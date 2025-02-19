@@ -278,7 +278,7 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading }
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 space-y-8">
+        <div className="max-w-4xl mx-auto p-6 space-y-8 min-h-screen">
             <form onSubmit={handleSubmit}>
                 <div className="bg-white shadow-md rounded-lg p-6">
                     <h2 className="text-2xl font-bold mb-6">
@@ -845,7 +845,8 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading }
 
 export default function App() {
     return (
-        
+        <div className='min-h-screen'>
             <ActorProfileEditor />
+            </div>
     );
 }

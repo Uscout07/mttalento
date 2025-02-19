@@ -21,7 +21,7 @@ export default function Home() {
       {/* Main content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white z-20 px-4 Gill_Sans">
         <div className="w-[110%] h-[50%] bg-black blur-3xl opacity-60 absolute -z-10" />
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">MT&apos; TALENTO</h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">MT TALENTO</h1>
         
         {/* Replaced emojis with flag icons */}
         <p className="text-lg md:text-xl mb-6 flex items-center gap-2">
