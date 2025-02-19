@@ -1,4 +1,3 @@
-import Header from "./components/header";
 import PosterCarousel from "./components/PosterCarousel";
 import { Icon } from "@iconify/react";
 
@@ -19,13 +18,17 @@ export default function Home() {
       {/* Background carousel */}
       <PosterCarousel images={posters} />
 
-  
-
       {/* Main content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white z-20 px-4 Gill_Sans">
-        <div className="w-[110%] h-[50%] bg-black blur-3xl opacity-60 absolute  -z-10 "/>
+        <div className="w-[110%] h-[50%] bg-black blur-3xl opacity-60 absolute -z-10" />
         <h1 className="text-4xl md:text-5xl font-bold mb-4">MT&apos; TALENTO</h1>
-        <p className="text-lg md:text-xl mb-6">Made in 🇲🇽 🇺🇸</p>
+        
+        {/* Replaced emojis with flag icons */}
+        <p className="text-lg md:text-xl mb-6 flex items-center gap-2">
+          Made in 
+          <Icon icon="twemoji:flag-mexico" className="w-6 h-6" />
+          <Icon icon="twemoji:flag-united-states" className="w-6 h-6" />
+        </p>
         
         {/* Social icons */}
         <div className="flex items-center justify-center gap-4 mb-6">
