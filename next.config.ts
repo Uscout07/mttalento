@@ -1,17 +1,22 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  // Enable React Strict Mode (optional, but recommended)
   reactStrictMode: true,
+  async rewrites() {
+    return [
+      {
+        source: '/Actors/profile', // User sees this
+        destination: '/Actors/[id]', // Internally fetches from the original path
+      },
+    ];
+  },
 
-  // Tell Next.js which external domains are allowed for images
   images: {
     domains: [
-      'wyespxlrszeqfcotudwy.supabase.co', // <-- Your Supabase domain
+      'wyespxlrszeqfcotudwy.supabase.co',
     ],
   },
 
-  // Add environment variables
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,

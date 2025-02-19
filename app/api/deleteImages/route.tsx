@@ -1,52 +1,59 @@
+// /app/api/deleteImages/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { unlink } from 'fs/promises';
-import { join } from 'path';
 import { createClient } from '@supabase/supabase-js';
 
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    throw new Error('Supabase environment variables are not set');
-}
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function POST(req: NextRequest) {
+    const session = await supabase.auth.getSession();
+    if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     try {
-        const { fileUrl, profileId, name } = await req.json();
-
-        if (!fileUrl || !profileId || !name) {
-            return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+        const { fileUrl, profileId } = await req.json();
+        if (!fileUrl || !profileId) {
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Ensure fileUrl is a relative path (not an absolute URL)
-        if (!fileUrl.startsWith('/')) {
+        // Retrieve the profile to get the folder address stored in the images field.
+        const { data: profileData, error: profileError } = await supabase
+            .from('profile')
+            .select('images')
+            .eq('id', profileId)
+            .single();
+
+        if (profileError) {
+            return NextResponse.json({ error: profileError.message }, { status: 400 });
+        }
+
+        const folderPath = profileData.images;
+        const publicUrlPrefix = `${supabaseUrl}/storage/v1/object/public/assets/`;
+
+        if (!fileUrl.startsWith(publicUrlPrefix)) {
             return NextResponse.json({ error: 'Invalid file URL' }, { status: 400 });
         }
 
-        // Remove spaces from the name
-        const sanitizedFileName = name.replace(/\s+/g, '');
+        const relativePath = fileUrl.replace(publicUrlPrefix, '');
 
-        // Construct the full path
-        const fullPath = join(process.cwd(), 'public', fileUrl);
+        // Verify the file is in the correct folder
+        if (!relativePath.startsWith(folderPath)) {
+            return NextResponse.json({ error: 'File does not belong to this profile' }, { status: 400 });
+        }
+        // Remove the prefix to get the relative path used in the bucket.
 
-        // Delete the file from the server (if it exists)
-        try {
-            await unlink(fullPath);
-        } catch (fsError) {
-            console.warn('File not found or already deleted:', fullPath);
+        // Remove the file from the "assets" bucket.
+        const { error: removeError } = await supabase
+            .storage
+            .from('assets')
+            .remove([relativePath]);
+
+        if (removeError) {
+            return NextResponse.json({ error: removeError.message }, { status: 400 });
         }
 
-        // Remove the entry from Supabase
-        const { error } = await supabase
-            .from('profile_images')
-            .delete()
-            .match({ profile_id: profileId, file_url: fileUrl });
-
-        if (error) throw error;
-
-        return NextResponse.json({ message: 'Image deleted successfully' });
+        return NextResponse.json({ message: 'File deleted successfully' });
     } catch (error) {
         return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }

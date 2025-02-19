@@ -16,14 +16,14 @@ export default async function Page() {
   const eighteenYearsAgo = new Date();
   eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
   const cutoffDate = eighteenYearsAgo.toISOString().split('T')[0];
+
   let loading = true;
   const { data: profiles, error } = await supabase
     .from('profile')
     .select('*')
     .lte('birth_date', cutoffDate)  // Change gte to lte to filter correctly
-    .eq('gender', 'Male');
+    .eq('gender', 'Female');
   loading = false;
-  
 
 
   if (error) {
@@ -49,12 +49,9 @@ export default async function Page() {
       </div>
     );
   }
-
-  
-
   return (
     <div className="min-h-screen py-8 px-0">
-      <h1 className="text-3xl font-bold text-center mb-8 text-red-500">Actors</h1>
+      <h1 className="text-3xl font-bold text-center mb-8 text-red-500">Actresses</h1>
       <div className="max-w-[95%] mx-auto">
         <div className="flex flex-wrap justify-center gap-6">
           {profiles.map((profile: Profile) => (

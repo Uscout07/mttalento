@@ -36,10 +36,13 @@ interface Translations {
   voiceover: string;
   primaryImage: string;
   nationalityInfo: string;
-  remove: string;
   selectActor: string;
   longFilms: string;
   appearance: string;
+  createNewActor: string;
+  remove: string;
+  cancel: string;
+  confirm: string;
 }
 
 type LanguageType = 'en' | 'es';
@@ -90,6 +93,9 @@ const translations: { [key in LanguageType]: Translations } = {
     selectActor: 'Select Actor',
     longFilms: 'Long Films',
     appearance: 'Appearance',
+    createNewActor: 'Create New Actor',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
   },
   es: {
     name: 'Nombre',
@@ -122,13 +128,16 @@ const translations: { [key in LanguageType]: Translations } = {
     addVoiceDubbing: 'Agregar Doblaje de Voz',
     featureFilms: 'Largometrajes',
     addShortFilmsCredit: 'Agregar créditos de cortometrajes',
+    longFilms: 'Largometrajes',
     theater: 'Teatro',
     voiceover: 'Doblaje de Voz',
     primaryImage: 'Imagen Principal',
     nationalityInfo: 'Información de Nacionalidad',
     remove: 'Eliminar',
     selectActor: 'Seleccionar Actor',
-    longFilms: 'Largometrajes',
+    createNewActor: 'Crear Nuevo Actor',
+    cancel: 'Cancelar',
+    confirm: 'Confirmar',
     appearance: 'Apariencia',
   },
 };

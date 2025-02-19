@@ -14,21 +14,29 @@ export default function Home() {
     "/posters/poster8.jpg",
   ];
   return (
-    <div className="relative w-full h-screen overflow-hidden ">
-      <PosterCarousel images={posters} />
-      <div className="absolute inset-0 flex items-center justify-center text-center text-white z-10 Gill_Sans">
-        <div className="bg-black bg-opacity-50 p-6 rounded-lg">
-          <h1 className="text-4xl  mb-4">MT' TALENTO</h1>
-          <p className="text-lg mb-6">Made in 🇲🇽 🇺🇸</p>
-          <div className='flex items-center justify-center gap-[0.5vh]'>
-            <Icon icon="skill-icons:instagram" width="3.2vh" height="3.2vh" />
-            <Icon icon="devicon:facebook" width="3.2vh" height="3.2vh" />
-          </div>
-          <button className="bg-red-600 text-white px-6 py-3 rounded-full text-lg font-medium hover:bg-red-700 transition">
-            CONTÁCTANOS
-          </button>
+    <div className="relative w-full h-screen overflow-hidden">
 
+      {/* Background carousel */}
+      <PosterCarousel images={posters} />
+
+  
+
+      {/* Main content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white z-20 px-4 Gill_Sans">
+        <div className="w-[110%] h-[50%] bg-black blur-3xl opacity-60 absolute  -z-10 "/>
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">MT&apos; TALENTO</h1>
+        <p className="text-lg md:text-xl mb-6">Made in 🇲🇽 🇺🇸</p>
+        
+        {/* Social icons */}
+        <div className="flex items-center justify-center gap-4 mb-6">
+          <Icon icon="skill-icons:instagram" className="w-8 h-8" />
+          <Icon icon="devicon:facebook" className="w-8 h-8" />
         </div>
+        
+        {/* Call-to-action button */}
+        <button className="bg-red-600 text-white px-6 py-3 rounded-full text-lg font-medium hover:bg-red-700 transition duration-300">
+          CONTÁCTANOS
+        </button>
       </div>
     </div>
   );

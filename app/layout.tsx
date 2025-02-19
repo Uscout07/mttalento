@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { LanguageProvider } from "./components/languageContext"; 
+import { LanguageProvider } from "./components/languageContext";
 import Header from "./components/header";
+import Footer from "./components/footer";
 import "./globals.css";
+
 
 
 export const metadata: Metadata = {
@@ -16,11 +18,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-       <LanguageProvider>
-      <body className="Gill_Sans">
-      <Header />
-        {children}
-      </body>
+      <LanguageProvider>
+        <body className="Gill_Sans">
+          <Header />
+          {children}
+          <Footer />
+        </body>
       </LanguageProvider>
     </html>
   );

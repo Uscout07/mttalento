@@ -169,17 +169,9 @@ const ProfileContent: React.FC = () => {
 
           setProfile(parsedData as Profile);
 
-          // Load images dynamically from Supabase storage
-          const actorFolder = `actors/${data.name.replace(/\s+/g, '')}/images/`;
-          const { data: files, error: storageError } = await supabase
-            .storage
-            .from('assets')
-            .list(actorFolder);
-
-          if (storageError) throw storageError;
-
-          const imagePaths = files.map(file => `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${actorFolder}${file.name}`);
-
+          // Load images dynamically from `/actors/{actor_name}/images/`
+          const actorFolder = `/actors/${data.name}/images/`;
+          const imagePaths = Array.from({ length: 10 }, (_, i) => `${actorFolder}${i + 1}.jpg`);
           setImages(imagePaths);
         }
       } catch (err) {
@@ -196,7 +188,7 @@ const ProfileContent: React.FC = () => {
     // Rotate images every 5 minutes
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 3000); 
+    }, 300000); // 5 minutes
 
     return () => clearInterval(interval);
   }, [id, images.length]);
@@ -319,15 +311,15 @@ const ProfileContent: React.FC = () => {
       </header>
       <div className="flex flex-col md:flex-row md:gap-8">
         <div className="w-full md:w-1/3 flex-shrink-0 mb-6 md:mb-0">
-        <div className="sticky top-4 flex justify-center group w-full h-[32rem] overflow-hidden cursor-pointer transform hover:scale-105 transition-transform duration-500">
+          <div className="sticky top-4 flex justify-center">
             {images.length > 0 && (
-              <Link href={`/Actors/${id}/gallery`}>
+              <Link href={`/gallery/${id}`}>
                 <Image
                   src={images[currentIndex]}
                   alt={profile.name || 'Profile Image'}
                   width={400}
                   height={500}
-                  className="w-full h-full object-cover   cursor-pointer hover:opacity-80"
+                  className="rounded-md object-cover shadow-lg cursor-pointer hover:opacity-80"
                 />
               </Link>
             )}

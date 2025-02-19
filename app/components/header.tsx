@@ -60,14 +60,14 @@ export default function Header() {
     { name: 'Inicio', link: '/' },
     { name: 'Actores', link: '/Actors' },
     { name: 'Actrices', link: '/Actresses' },
-    { name: 'Niños actores', link: '/Child_Actores' },
+    { name: 'Actores Jóvenes', link: '/Young_Actors' },
     { name: 'Contáctanos', link: '/Contact' },
   ];
   const English = [
     { name: 'Home', link: '/' },
     { name: 'Actors', link: '/Actors' },
     { name: 'Actresses', link: '/Actresses' },
-    { name: 'Child Actors', link: '/Child_Actores' },
+    { name: 'Young Actors', link: '/Young_Actors' },
     { name: 'Contact Us', link: '/Contact' },
   ];
 
