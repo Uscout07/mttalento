@@ -248,17 +248,18 @@ const ProfileContent: React.FC = () => {
     );
   };
 
-  // Render training
   const renderTraining = (training: Training[] | undefined) => {
     if (!training || training.length === 0) return null;
 
     return (
       <div className="mt-6">
-        <h3 className="text-xl font-bold mb-3">{translations.training || 'Training'}</h3>
+        <h3 className="text-xl font-bold mb-3">{translations.training || "Training"}</h3>
         {training.map((item, index) => (
           <div key={index} className="border-b border-gray-200 py-2">
             <p className="text-gray-600">
-              {item.description}
+              {typeof item.description === "object"
+                ? item.description[language] // Use translated text based on selected language
+                : item.description}
               {item.year && ` (${item.year})`}
             </p>
           </div>

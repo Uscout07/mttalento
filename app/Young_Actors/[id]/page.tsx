@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useLanguage } from '../../components/languageContext';
 import { createClient } from '@supabase/supabase-js';
@@ -76,8 +77,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
-const [images, setImages] = useState<string[]>([]);
-const [imageIndexes, setImageIndexes] = useState<{ [key: number]: number }>({});
+
 // Helper to check if a string is valid JSON
 const isJsonString = (str: string): boolean => {
   try {
@@ -107,16 +107,7 @@ const ProfileField: React.FC<ProfileFieldProps> = ({ label, value }) => {
 const ProfileContent: React.FC = () => {
   const params = useParams();
   const { id } = params; // Extract profile id from URL params
-  useEffect(() => {
-    const fetchImages = async () => {
-      const actorFolder = `/actors/${id}/images/`;
-      const imagePaths = Array.from({ length: 10 }, (_, i) => `${actorFolder}${i + 1}.jpg`); // Assume 10 images per actor
-      setImages(imagePaths);
-      setActorName(`Actor ${id}`); // Replace with real name if available
-    };
 
-    fetchImages();
-  }, [id]);
   // Cast language context to our expected type
   const { translations, language } = useLanguage() as unknown as {
     translations: Record<string, string>;
@@ -126,6 +117,8 @@ const ProfileContent: React.FC = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -175,6 +168,11 @@ const ProfileContent: React.FC = () => {
           });
 
           setProfile(parsedData as Profile);
+
+          // Load images dynamically from `/actors/{actor_name}/images/`
+          const actorFolder = `/actors/${data.name}/images/`;
+          const imagePaths = Array.from({ length: 10 }, (_, i) => `${actorFolder}${i + 1}.jpg`);
+          setImages(imagePaths);
         }
       } catch (err) {
         console.error('Error fetching profile:', err);
@@ -186,7 +184,14 @@ const ProfileContent: React.FC = () => {
     };
 
     fetchProfile();
-  }, [id]);
+
+    // Rotate images every 5 minutes
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 300000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [id, images.length]);
 
   // Render credits (e.g., television, films, etc.)
   const renderCredits = (credits: Credit[] | undefined, title: string) => {
@@ -299,10 +304,6 @@ const ProfileContent: React.FC = () => {
     );
   }
 
-    function setZoomedImage(img: string): void {
-        throw new Error('Function not implemented.');
-    }
-
   return (
     <div className="p-4 max-w-6xl mx-auto">
       <header className="text-center mb-6 md:text-left">
@@ -310,17 +311,18 @@ const ProfileContent: React.FC = () => {
       </header>
       <div className="flex flex-col md:flex-row md:gap-8">
         <div className="w-full md:w-1/3 flex-shrink-0 mb-6 md:mb-0">
-          <div className="sticky top-4">
-          {images.map((img, index) => (
-          <div key={index} className="relative cursor-pointer">
-            <img
-              src={img}
-              alt={`Actor Image ${index + 1}`}
-              className="w-full h-48 object-cover rounded-md hover:opacity-80"
-              onClick={() => setZoomedImage(img)}
-            />
-          </div>
-        ))}
+          <div className="sticky top-4 flex justify-center">
+            {images.length > 0 && (
+              <Link href={`/gallery/${id}`}>
+                <Image
+                  src={images[currentIndex]}
+                  alt={profile.name || 'Profile Image'}
+                  width={400}
+                  height={500}
+                  className="rounded-md object-cover shadow-lg cursor-pointer hover:opacity-80"
+                />
+              </Link>
+            )}
           </div>
         </div>
         <div className="w-full md:w-2/3">
@@ -383,7 +385,3 @@ const ProfileContent: React.FC = () => {
 };
 
 export default ProfileContent;
-function setActorName(arg0: string) {
-    throw new Error('Function not implemented.');
-}
-

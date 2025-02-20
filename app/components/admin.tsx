@@ -659,6 +659,7 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading }
                         <h3 className="text-lg font-semibold mb-4">{translations.training}</h3>
                         {(formData.formacion || []).map((training: any, index: number) => (
                             <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded">
+                                {/* Year Input */}
                                 <input
                                     type="text"
                                     placeholder="Year"
@@ -666,21 +667,41 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading }
                                     onChange={(e) => handleArrayChange('formacion', index, 'year', e.target.value)}
                                     className="block w-full rounded border border-gray-300 p-2"
                                 />
+
+                                {/* English Description */}
                                 <input
                                     type="text"
-                                    placeholder="Description"
-                                    value={training.description || ''}
-                                    onChange={(e) => handleArrayChange('formacion', index, 'description', e.target.value)}
+                                    placeholder="Training Description (English)"
+                                    value={training.description?.en || ''}
+                                    onChange={(e) => handleArrayChange('formacion', index, 'description', {
+                                        ...training.description, en: e.target.value
+                                    })}
                                     className="block w-full rounded border border-gray-300 p-2"
                                 />
+
+                                {/* Spanish Description */}
+                                <input
+                                    type="text"
+                                    placeholder="Descripción de la formación (Español)"
+                                    value={training.description?.es || ''}
+                                    onChange={(e) => handleArrayChange('formacion', index, 'description', {
+                                        ...training.description, es: e.target.value
+                                    })}
+                                    className="block w-full rounded border border-gray-300 p-2"
+                                />
+
+                                {/* Remove Training Button */}
                                 <button
                                     type="button"
                                     onClick={() => removeFromArray('formacion', index)}
                                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                                 >
-                                    {translations?.remove}                            </button>
+                                    {translations?.remove || 'Remove'}
+                                </button>
                             </div>
                         ))}
+
+                        {/* Add Training Button */}
                         <button
                             type="button"
                             onClick={() => addToArray('formacion')}
@@ -689,6 +710,7 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading }
                             {translations?.addTraining || 'Add Training'}
                         </button>
                     </div>
+
 
                     {/* Skills (Habilidades) Section */}
                     <div className="mb-6">
@@ -847,6 +869,6 @@ export default function App() {
     return (
         <div className='min-h-screen'>
             <ActorProfileEditor />
-            </div>
+        </div>
     );
 }
