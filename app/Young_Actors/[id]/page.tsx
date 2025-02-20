@@ -169,9 +169,22 @@ const ProfileContent: React.FC = () => {
 
           setProfile(parsedData as Profile);
 
-          // Load images dynamically from `/actors/{actor_name}/images/`
-          const actorFolder = `/actors/${data.name}/images/`;
-          const imagePaths = Array.from({ length: 10 }, (_, i) => `${actorFolder}${i + 1}.jpg`);
+          // Load images dynamically from Supabase storage
+          const actorFolder = `actors/${data.name
+            .normalize("NFD") // Normalize to decomposed Unicode (e.g., "é" → "é")
+            .replace(/[\u0300-\u036f]/g, "") // Remove diacritical marks
+            .replace(/[^a-zA-Z0-9]/g, "") // Remove non-alphanumeric characters
+          }/images/`;
+          
+          const { data: files, error: storageError } = await supabase
+            .storage
+            .from('assets')
+            .list(actorFolder);
+
+          if (storageError) throw storageError;
+
+          const imagePaths = files.map(file => `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/${actorFolder}${file.name}`);
+
           setImages(imagePaths);
         }
       } catch (err) {
@@ -188,7 +201,7 @@ const ProfileContent: React.FC = () => {
     // Rotate images every 5 minutes
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 300000); // 5 minutes
+    }, 3000); 
 
     return () => clearInterval(interval);
   }, [id, images.length]);
@@ -219,38 +232,45 @@ const ProfileContent: React.FC = () => {
     );
   };
 
-  // Render skills
-  const renderSkills = (skills: Skill[] | undefined) => {
-    if (!skills || skills.length === 0) return null;
-
+  const renderSkills = (skills: any) => {
+    if (!Array.isArray(skills) || skills.length === 0) return null;
+  
     return (
       <div className="mt-6">
-        <h3 className="text-xl font-bold mb-3">{translations.skills || 'Skills'}</h3>
-        {skills.map((skillGroup, index) => (
+        <h3 className="text-xl font-bold mb-3">{translations.skills || "Skills"}</h3>
+        {skills.map((skillGroup: any, index: number) => (
           <div key={index} className="mb-4">
+            {/* Display category in the selected language */}
             {skillGroup.category && (
-              <h4 className="font-medium text-gray-700 mb-2">{skillGroup.category}</h4>
+              <h4 className="font-medium text-gray-700 mb-2">
+                {skillGroup.category[language] || skillGroup.category.en || skillGroup.category.es}
+              </h4>
             )}
+            {/* Display skills in the selected language */}
             {skillGroup.skills && (
-              <p className="text-gray-600">{skillGroup.skills.join(', ')}</p>
+              <p className="text-gray-600">
+                {skillGroup.skills[language] ? skillGroup.skills[language].join(", ") : ""}
+              </p>
             )}
           </div>
         ))}
       </div>
     );
   };
+  
 
-  // Render training
   const renderTraining = (training: Training[] | undefined) => {
     if (!training || training.length === 0) return null;
 
     return (
       <div className="mt-6">
-        <h3 className="text-xl font-bold mb-3">{translations.training || 'Training'}</h3>
+        <h3 className="text-xl font-bold mb-3">{translations.training || "Training"}</h3>
         {training.map((item, index) => (
           <div key={index} className="border-b border-gray-200 py-2">
             <p className="text-gray-600">
-              {item.description}
+              {typeof item.description === "object"
+                ? item.description[language] // Use translated text based on selected language
+                : item.description}
               {item.year && ` (${item.year})`}
             </p>
           </div>
@@ -311,15 +331,15 @@ const ProfileContent: React.FC = () => {
       </header>
       <div className="flex flex-col md:flex-row md:gap-8">
         <div className="w-full md:w-1/3 flex-shrink-0 mb-6 md:mb-0">
-          <div className="sticky top-4 flex justify-center">
+        <div className="sticky top-4 flex justify-center group w-full h-[32rem] overflow-hidden cursor-pointer transform hover:scale-105 transition-transform duration-500">
             {images.length > 0 && (
-              <Link href={`/gallery/${id}`}>
+              <Link href={`/Actors/${id}/gallery`}>
                 <Image
                   src={images[currentIndex]}
                   alt={profile.name || 'Profile Image'}
                   width={400}
                   height={500}
-                  className="rounded-md object-cover shadow-lg cursor-pointer hover:opacity-80"
+                  className="w-full h-full object-cover   cursor-pointer hover:opacity-80"
                 />
               </Link>
             )}

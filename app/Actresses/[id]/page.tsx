@@ -170,7 +170,12 @@ const ProfileContent: React.FC = () => {
           setProfile(parsedData as Profile);
 
           // Load images dynamically from Supabase storage
-          const actorFolder = `actors/${data.name.replace(/\s+/g, '')}/images/`;
+          const actorFolder = `actors/${data.name
+            .normalize("NFD") // Normalize to decomposed Unicode (e.g., "é" → "é")
+            .replace(/[\u0300-\u036f]/g, "") // Remove diacritical marks
+            .replace(/[^a-zA-Z0-9]/g, "") // Remove non-alphanumeric characters
+          }/images/`;
+          
           const { data: files, error: storageError } = await supabase
             .storage
             .from('assets')
@@ -227,26 +232,32 @@ const ProfileContent: React.FC = () => {
     );
   };
 
-  // Render skills
-  const renderSkills = (skills: Skill[] | undefined) => {
-    if (!skills || skills.length === 0) return null;
-
+  const renderSkills = (skills: any) => {
+    if (!Array.isArray(skills) || skills.length === 0) return null;
+  
     return (
       <div className="mt-6">
-        <h3 className="text-xl font-bold mb-3">{translations.skills || 'Skills'}</h3>
-        {skills.map((skillGroup, index) => (
+        <h3 className="text-xl font-bold mb-3">{translations.skills || "Skills"}</h3>
+        {skills.map((skillGroup: any, index: number) => (
           <div key={index} className="mb-4">
+            {/* Display category in the selected language */}
             {skillGroup.category && (
-              <h4 className="font-medium text-gray-700 mb-2">{skillGroup.category}</h4>
+              <h4 className="font-medium text-gray-700 mb-2">
+                {skillGroup.category[language] || skillGroup.category.en || skillGroup.category.es}
+              </h4>
             )}
+            {/* Display skills in the selected language */}
             {skillGroup.skills && (
-              <p className="text-gray-600">{skillGroup.skills.join(', ')}</p>
+              <p className="text-gray-600">
+                {skillGroup.skills[language] ? skillGroup.skills[language].join(", ") : ""}
+              </p>
             )}
           </div>
         ))}
       </div>
     );
   };
+  
 
   const renderTraining = (training: Training[] | undefined) => {
     if (!training || training.length === 0) return null;

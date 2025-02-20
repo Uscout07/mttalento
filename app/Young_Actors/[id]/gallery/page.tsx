@@ -40,7 +40,11 @@ export default function GalleryPage() {
         return;
       }
 
-      const actorFolder = `actors/${profileData.name.replace(/\s+/g, '')}/images/`;
+      const actorFolder = `actors/${profileData.name
+        .normalize("NFD") // Normalize to decomposed Unicode (e.g., "é" → "é")
+        .replace(/[\u0300-\u036f]/g, "") // Remove diacritical marks
+        .replace(/[^a-zA-Z0-9]/g, "") // Remove non-alphanumeric characters
+        }/images/`;
 
       const { data: files, error: storageError } = await supabase
         .storage
