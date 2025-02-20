@@ -215,7 +215,8 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading }
         formacion: actor?.formacion || [],
         habilidades: actor?.habilidades || [],
         serie_documental: actor?.serie_documental || [],
-        doblaje_voz: actor?.doblaje_voz || [],
+        doblaje_voz: Array.isArray(actor?.doblaje_voz) ? actor.doblaje_voz : []
+
     };
 
     const [formData, setFormData] = useState<{ [key: string]: any }>(initialFormData);
@@ -798,14 +799,14 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading }
                                 <input
                                     type="text"
                                     placeholder="Character"
-                                    value={dubbing.character || ''}
+                                    value={dubbing.role || ''}
                                     onChange={(e) => handleArrayChange('doblaje_voz', index, 'character', e.target.value)}
                                     className="block w-full rounded border border-gray-300 p-2"
                                 />
                                 <input
                                     type="text"
                                     placeholder="Movie/Series"
-                                    value={dubbing.show || ''}
+                                    value={dubbing.title || ''}
                                     onChange={(e) => handleArrayChange('doblaje_voz', index, 'show', e.target.value)}
                                     className="block w-full rounded border border-gray-300 p-2"
                                 />
@@ -814,6 +815,13 @@ const ActorForm: React.FC<ActorFormProps> = ({ actor = {}, onSubmit, isLoading }
                                     placeholder="Year"
                                     value={dubbing.year || ''}
                                     onChange={(e) => handleArrayChange('doblaje_voz', index, 'year', e.target.value)}
+                                    className="block w-full rounded border border-gray-300 p-2"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Network"
+                                    value={dubbing.network || ''}
+                                    onChange={(e) => handleArrayChange('doblaje_voz', index, 'character', e.target.value)}
                                     className="block w-full rounded border border-gray-300 p-2"
                                 />
                                 <button

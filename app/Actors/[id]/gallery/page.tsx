@@ -15,11 +15,11 @@ export default function GalleryPage() {
   const { id } = useParams();
   const [images, setImages] = useState<string[]>([]);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
-  const [actorName, setActorName] = useState<string>('');
+  const [] = useState<string>('');
 
   useEffect(() => {
     const fetchImages = async () => {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .storage
         .from('assets')
         .list(`actors/${id}/images`, { limit: 10 });
