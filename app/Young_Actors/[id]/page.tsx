@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { AnimatePresence, motion } from "framer-motion";
 import { useParams } from 'next/navigation';
 import { useLanguage } from '../../components/languageContext';
 import { createClient } from '@supabase/supabase-js';
@@ -174,8 +175,8 @@ const ProfileContent: React.FC = () => {
             .normalize("NFD") // Normalize to decomposed Unicode (e.g., "é" → "é")
             .replace(/[\u0300-\u036f]/g, "") // Remove diacritical marks
             .replace(/[^a-zA-Z0-9]/g, "") // Remove non-alphanumeric characters
-          }/images/`;
-          
+            }/images/`;
+
           const { data: files, error: storageError } = await supabase
             .storage
             .from('assets')
@@ -201,7 +202,7 @@ const ProfileContent: React.FC = () => {
     // Rotate images every 5 minutes
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 3000); 
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [id, images.length]);
@@ -234,7 +235,7 @@ const ProfileContent: React.FC = () => {
 
   const renderSkills = (skills: any) => {
     if (!Array.isArray(skills) || skills.length === 0) return null;
-  
+
     return (
       <div className="mt-6">
         <h3 className="text-xl font-bold mb-3">{translations.skills || "Skills"}</h3>
@@ -257,7 +258,7 @@ const ProfileContent: React.FC = () => {
       </div>
     );
   };
-  
+
 
   const renderTraining = (training: Training[] | undefined) => {
     if (!training || training.length === 0) return null;
@@ -303,7 +304,7 @@ const ProfileContent: React.FC = () => {
     }
     return null;
   };
-  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -331,16 +332,23 @@ const ProfileContent: React.FC = () => {
       </header>
       <div className="flex flex-col md:flex-row md:gap-8">
         <div className="w-full md:w-1/3 flex-shrink-0 mb-6 md:mb-0">
-        <div className="sticky top-4 flex justify-center group w-full h-[32rem] overflow-hidden cursor-pointer transform hover:scale-105 transition-transform duration-500">
+          <div className="sticky top-4 flex justify-center group w-full h-[32rem] overflow-hidden cursor-pointer transform hover:scale-105 transition-transform duration-500">
             {images.length > 0 && (
               <Link href={`/Actors/${id}/gallery`}>
-                <Image
-                  src={images[currentIndex]}
-                  alt={profile.name || 'Profile Image'}
-                  width={400}
-                  height={500}
-                  className="w-full h-full object-cover   cursor-pointer hover:opacity-80"
-                />
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={currentIndex} // Ensures animation runs on index change
+                    src={images[currentIndex]}
+                    alt={profile.name || "Profile Image"}
+                    width={400}
+                    height={500}
+                    className="w-full h-full object-cover cursor-pointer hover:opacity-80"
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.1 }} // Ensures smooth transition when switching images
+                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                  />
+                </AnimatePresence>
               </Link>
             )}
           </div>
