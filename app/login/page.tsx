@@ -4,32 +4,60 @@ import { useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
-export default function LoginForm() {
+export default function AuthForm() {
   const supabase = createClientComponentClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isSignup, setIsSignup] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setError(error.message);
     } else {
-      // After a successful login, the session cookie is set.
-      // Redirect to your protected page (e.g. /page or /Admin).
       router.push('/Admin');
     }
   };
 
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    // Check if the email is approved in the database
+    const { data, error: fetchError } = await supabase
+    .from('approved_users')
+    .select('*')
+    .eq('email', email);
+  
+  console.log('Data:', data, 'Error:', fetchError);
+  
+
+    if (fetchError || !data) {
+      setError('Signup is restricted to approved users only.');
+      return;
+    }
+
+    // Proceed with signup
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      setError(error.message);
+    } else {
+      alert('Signup successful! Please check your email for verification.');
+      setIsSignup(false);
+    }
+  };
+
   return (
+    <div className="min-h-screen">
     <div className="max-w-md mx-auto mt-10 p-4 border rounded shadow">
-      <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">{isSignup ? 'Sign Up' : 'Login'}</h2>
       {error && <div className="mb-4 text-red-500">{error}</div>}
-      <form onSubmit={handleLogin}>
+      <form onSubmit={isSignup ? handleSignup : handleLogin}>
         <div className="mb-4">
           <label htmlFor="email" className="block mb-1 font-medium">
             Email
@@ -62,9 +90,19 @@ export default function LoginForm() {
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
         >
-          Login
+          {isSignup ? 'Sign Up' : 'Login'}
         </button>
       </form>
+      <p className="mt-4 text-center">
+        {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
+        <button
+          onClick={() => setIsSignup(!isSignup)}
+          className="text-blue-600 hover:underline"
+        >
+          {isSignup ? 'Login' : 'Sign Up'}
+        </button>
+      </p>
+    </div>
     </div>
   );
 }
