@@ -43,6 +43,9 @@ interface Translations {
   remove: string;
   cancel: string;
   confirm: string;
+  actors: string;
+  actresses: string;
+  youngActors: string;
 }
 
 type LanguageType = 'en' | 'es';
@@ -95,7 +98,10 @@ const translations: { [key in LanguageType]: Translations } = {
     appearance: 'Appearance',
     createNewActor: 'Create New Actor',
     cancel: 'Cancel',
-    confirm: 'Confirm',
+    actors: "Actors",
+    actresses: "Actresses",
+    confirm: "Confirm",
+    youngActors: "Young Actors"
   },
   es: {
     name: 'Nombre',
@@ -139,6 +145,9 @@ const translations: { [key in LanguageType]: Translations } = {
     cancel: 'Cancelar',
     confirm: 'Confirmar',
     appearance: 'Apariencia',
+    actors: "Actores",
+    actresses: "Actrices",
+    youngActors: "Actores Jóvenes"
   },
 };
 

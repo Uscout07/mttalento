@@ -1,47 +1,49 @@
-// app/page.tsx
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import Link from 'next/link';
+'use client';
+import React, { useState, useEffect } from "react";
+import { useLanguage } from "../components/languageContext";
+import { createClient } from "@supabase/supabase-js";
+import Link from "next/link";
 
-interface Profile {
-  id: number;
-  name: string;
-  avatar_url: string;
-  primary_image?: string;
-}
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-export default async function Page() {
-  // Use createServerComponentClient to only read cookies (and not modify them)
-  const supabase = createServerComponentClient({ cookies });
-  const eighteenYearsAgo = new Date();
-  eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
-  const cutoffDate = eighteenYearsAgo.toISOString().split('T')[0];
+const Page = () => {
+  const { translations, language } = useLanguage();
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  let loading = true;
-  const { data: profiles, error } = await supabase
-    .from('profile')
-    .select('*')
-    .lte('birth_date', cutoffDate)  // Change gte to lte to filter correctly
-    .eq('gender', 'Female');
-  loading = false;
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const eighteenYearsAgo = new Date();
+        eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+        const cutoffDate = eighteenYearsAgo.toISOString().split("T")[0];
 
+        const { data, error } = await supabase
+          .from("profile")
+          .select("*")
+          .lte("birth_date", cutoffDate)
+          .eq("gender", "Female");
 
-  if (error) {
-    console.error('Error fetching profiles:', error);
-    return (
-      <div className="flex justify-center items-center min-h-screen text-red-600">
-        Error fetching profiles data.
-      </div>
-    );
-  }
+        if (error) throw error;
 
-  if (!profiles || profiles.length === 0) {
-    return (
-      <div className="flex justify-center items-center min-h-screen text-gray-600">
-        No profiles found.
-      </div>
-    );
-  }
+        setProfiles(data || []);
+      } catch (err) {
+        setError("Error fetching profiles.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfiles();
+  }, []);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -49,12 +51,31 @@ export default async function Page() {
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-red-600">
+        {error}
+      </div>
+    );
+  }
+
+  if (profiles.length === 0) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-gray-600">
+        {translations.profileNotFound || "No profiles found."}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen py-8 px-0">
-      <h1 className="text-3xl font-bold text-center mb-8 text-red-500">Actresses</h1>
+      <h1 className="text-3xl font-bold text-center mb-8 text-red-500">
+        {translations.actresses}
+      </h1>
       <div className="max-w-[95%] mx-auto">
         <div className="flex flex-wrap justify-center gap-6">
-          {profiles.map((profile: Profile) => (
+          {profiles.map((profile) => (
             <Link
               key={profile.id}
               href={`/Actors/${profile.id}`}
@@ -62,7 +83,7 @@ export default async function Page() {
             >
               <div className="group relative w-full h-[32rem] shadow-lg overflow-hidden cursor-pointer transform hover:scale-105 transition-transform duration-500">
                 <img
-                  src={profile.primary_image || '/api/placeholder/420/650'}
+                  src={profile.primary_image || "/api/placeholder/420/650"}
                   alt={profile.name}
                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 ease-in-out"
                 />
@@ -81,4 +102,6 @@ export default async function Page() {
       </div>
     </div>
   );
-}
+};
+
+export default Page;
