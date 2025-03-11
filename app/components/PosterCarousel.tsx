@@ -52,7 +52,7 @@ const PosterCarousel: React.FC<PosterCarouselProps> = ({ images }) => {
   }, [images.length, numImages]);
 
   return (
-    <div className="relative w-full h-screen flex overflow-hidden -z-10">
+    <div className="relative w-full h-screen flex overflow-hidden -z-10 brightness-50">
       {currentIndices.map((index, i) => (
         <div
           key={i}
