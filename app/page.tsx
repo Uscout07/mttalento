@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import PosterCarousel from "./components/PosterCarousel";
 import { createClient } from "../utils/supabase/client"; // Ensure this points to your Supabase client setup
 import { Icon } from "@iconify/react";
+import Link from 'next/link';
 
 export default function Home() {
     const [posters, setPosters] = useState<string[]>([]);
@@ -82,9 +83,9 @@ export default function Home() {
                     <Icon icon="devicon:facebook" className="text-[2.1rem]" />
                 </div>
 
-                <button className="bg-red-600 text-white px-6 py-3 rounded-full text-lg font-medium hover:bg-red-700 transition duration-300">
+                <Link href="/Contact" className="bg-red-600 text-white px-6 py-3 rounded-full text-lg font-medium hover:bg-red-700 transition duration-300">
                     CONTÁCTANOS
-                </button>
+                </Link>
             </div>
         </div>
     );

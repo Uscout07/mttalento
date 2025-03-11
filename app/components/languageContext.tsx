@@ -46,6 +46,22 @@ interface Translations {
   actors: string;
   actresses: string;
   youngActors: string;
+  // Contact page translations
+  contactUs: string;
+  getInTouch: string;
+  address: string;
+  email: string;
+  phone: string;
+  socialMedia: string;
+  sendMessage: string;
+  yourName: string;
+  yourEmail: string;
+  subject: string;
+  yourMessage: string;
+  messageSent: string;
+  howCanWeHelp: string;
+  typeYourMessage: string;
+  madeIn: string;
 }
 
 type LanguageType = 'en' | 'es';
@@ -101,7 +117,23 @@ const translations: { [key in LanguageType]: Translations } = {
     actors: "Actors",
     actresses: "Actresses",
     confirm: "Confirm",
-    youngActors: "Young Actors"
+    youngActors: "Young Actors",
+    // Contact page translations
+    contactUs: 'Contact Us',
+    getInTouch: 'Get In Touch',
+    address: 'Address',
+    email: 'Email',
+    phone: 'Phone',
+    socialMedia: 'Social Media',
+    sendMessage: 'Send Message',
+    yourName: 'Your Name',
+    yourEmail: 'Your Email',
+    subject: 'Subject',
+    yourMessage: 'Your Message',
+    messageSent: 'Your message has been sent successfully!',
+    howCanWeHelp: 'How can we help you?',
+    typeYourMessage: 'Type your message here...',
+    madeIn: 'Made in'
   },
   es: {
     name: 'Nombre',
@@ -147,7 +179,23 @@ const translations: { [key in LanguageType]: Translations } = {
     appearance: 'Apariencia',
     actors: "Actores",
     actresses: "Actrices",
-    youngActors: "Actores Jóvenes"
+    youngActors: "Actores Jóvenes",
+    // Contact page translations
+    contactUs: 'Contáctanos',
+    getInTouch: 'Ponte En Contacto',
+    address: 'Dirección',
+    email: 'Correo Electrónico',
+    phone: 'Teléfono',
+    socialMedia: 'Redes Sociales',
+    sendMessage: 'Enviar Mensaje',
+    yourName: 'Tu Nombre',
+    yourEmail: 'Tu Correo Electrónico',
+    subject: 'Asunto',
+    yourMessage: 'Tu Mensaje',
+    messageSent: '¡Tu mensaje ha sido enviado exitosamente!',
+    howCanWeHelp: '¿Cómo podemos ayudarte?',
+    typeYourMessage: 'Escribe tu mensaje aquí...',
+    madeIn: 'Hecho en'
   },
 };
 
