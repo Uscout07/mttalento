@@ -71,11 +71,11 @@ export default function Home() {
                 <div className="w-[110%] h-[50%] blur-3xl opacity-60 absolute -z-10" />
                 <h1 className="text-4xl md:text-5xl font-bold mb-4">MT TALENTO</h1>
 
-                <p className="text-lg md:text-xl mb-6 flex items-center gap-2">
+                <h2 className="text-lg md:text-xl mb-6 flex items-center gap-2">
                     Made in
                     <Icon icon="twemoji:flag-mexico" className="w-6 h-6" />
                     <Icon icon="twemoji:flag-united-states" className="w-6 h-6" />
-                </p>
+                </h2>
 
                 <div className="flex items-baseline justify-center gap-4 mb-6">
                     <Icon icon="skill-icons:instagram" className="w-8 h-8" />
