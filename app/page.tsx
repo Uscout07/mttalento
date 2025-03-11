@@ -68,7 +68,7 @@ export default function Home() {
 
             {/* Main content */}
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white z-20 px-4 Gill_Sans">
-                <div className="w-[110%] h-[50%] bg-black blur-3xl opacity-60 absolute -z-10" />
+                <div className="w-[110%] h-[50%] blur-3xl opacity-60 absolute -z-10" />
                 <h1 className="text-4xl md:text-5xl font-bold mb-4">MT TALENTO</h1>
 
                 <p className="text-lg md:text-xl mb-6 flex items-center gap-2">
@@ -77,9 +77,9 @@ export default function Home() {
                     <Icon icon="twemoji:flag-united-states" className="w-6 h-6" />
                 </p>
 
-                <div className="flex items-center justify-center gap-4 mb-6">
+                <div className="flex items-baseline justify-center gap-4 mb-6">
                     <Icon icon="skill-icons:instagram" className="w-8 h-8" />
-                    <Icon icon="devicon:facebook" className="w-8 h-8" />
+                    <Icon icon="devicon:facebook" className="text-[2.1rem]" />
                 </div>
 
                 <button className="bg-red-600 text-white px-6 py-3 rounded-full text-lg font-medium hover:bg-red-700 transition duration-300">

@@ -79,7 +79,7 @@ export default function Header() {
 
   return (
     <header className="header w-full fixed text-white z-50 text-[2vh] font-bold">
-      <div className="blurground w-[130vw] h-[15vh] -top-5 bg-[#000000d8] blur-[50px] absolute font-bold"></div>
+      <div className="blurground w-[130vw] h-[15vh] -top-5  blur-[50px] absolute font-bold"></div>
       <div className="flex justify-between items-center p-5 relative z-10">
         {/* Logo */}
         <Link href="/">
