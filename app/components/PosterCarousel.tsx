@@ -67,7 +67,7 @@ const PosterCarousel: React.FC<PosterCarouselProps> = ({ images }) => {
           <img
             src={images[index]}
             alt={`Poster ${index + 1}`}
-            className="object-cover w-full h-full grayscale brightness-50"
+            className="object-cover w-full h-full grayscale darken brightness-50"
           />
         </div>
       ))}
