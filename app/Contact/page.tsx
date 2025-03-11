@@ -58,13 +58,13 @@ export default function Contact() {
             <div className="lg:col-span-1 bg-gray-100 shadow-md rounded-lg p-6 h-fit">
               <h2 className="text-2xl font-semibold mb-6 text-red-600">{translations.getInTouch}</h2>
               
-              <div className="mb-8">
+              {/* <div className="mb-8">
                 <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
                   <Icon icon="mdi:map-marker" className="text-red-600" />
                   {translations.address}
                 </h3>
                 <p className="text-gray-600">Mexico City, Mexico</p>
-              </div>
+              </div> */}
               
               <div className="mb-8">
                 <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
